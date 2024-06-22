@@ -1,1 +1,1 @@
-A toy shell written in nim. More features will be added. 
+the worst shell you have ever seen written in nim. More features will be added. 
