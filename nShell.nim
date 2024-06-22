@@ -25,7 +25,6 @@ proc event(tex: TextBox, lab: Label) =
                 quit()
             else:
                 echo tex.text
-                lab.text = lab.text & "here"
                 lab.text = lab.text & exe(tex.text)
             tex.text = ""
 
@@ -56,7 +55,6 @@ proc main() =
 
     var input = makeInput(container)
     var label = makeLabel(container)
-    label.text = "hello"
     event(input, label)
     window.show()
     app.run()
