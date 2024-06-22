@@ -1,9 +1,33 @@
-import os
-import std/osproc
-import std/rdstdin
-import strutils
-import std/terminal
-import std/json
+import nigui
+import osproc
+
+
+proc exe(cmd: string): string =
+    return execProcess(cmd)
+
+proc makeInput(con: Container): TextBox = 
+    var input = newTextBox()
+    con.add(input)
+    return input
+
+proc makeLabel(con: Container): Label =
+    var label = newLabel()
+    con.add(label)
+    return label
+
+proc event(tex: TextBox, lab: Label) =
+    tex.onKeyDown = proc(event: KeyboardEvent) =
+        if $event.key == "Key_Return":
+            lab.text = ""
+            if tex.text == "clear":
+                lab.text = lab.text & ""
+            elif tex.text == "quit":
+                quit()
+            else:
+                echo tex.text
+                lab.text = lab.text & "here"
+                lab.text = lab.text & exe(tex.text)
+            tex.text = ""
 
 
 
@@ -11,60 +35,34 @@ import std/json
 
 
 
-
-proc sEcho(color: ForegroundColor, str: string) =
-    stdout.styledWriteLine(color, styleBright, str)
-
-proc read(): string =
-    return readLineFromStdin(os.getCurrentDir() & ">")
-
-proc process(s: string): seq[string] =
-    return rsplit(s, " ")
+proc setupWindow(): Window =
+    var window = newWindow("nShell")
+    window.width = 600.scaleToDpi
+    window.height = 400.scaleToDpi
+    return window
 
 
-proc getConf(): string =
-    if fileExists("nShell.conf"):
-        return readFile("nShell.conf")
-    else:
-        writeFile("nShell.conf", $parseJson("""{"color": "fgDefault"}"""))
-        return readFile("nShell.conf")
-
-proc stringToFg(str: string): ForegroundColor =
-    for x in ForegroundColor:
-        if x == parseEnum[ForegroundColor]($(replace($str, """"""", ""))):
-            return x
-        else:
-            discard
-    return fgRed
+proc setupContainer(win: Window): Container =
+    var container = newLayoutContainer(Layout_Vertical)
+    win.add(container)
+    return container
 
 
 
+proc main() = 
+    app.init()
+    var window = setupWindow()
+    var container = setupContainer(window)
+
+    var input = makeInput(container)
+    var label = makeLabel(container)
+    label.text = "hello"
+    event(input, label)
+    window.show()
+    app.run()
 
 
-
-proc exec(cmd: string, color: ForegroundColor) = 
-    var splitCmd = process(cmd)
-    if splitCmd[0] == "cd":
-        try:
-            os.setCurrentDir(splitCmd[1])
-        except:
-            sEcho(fgRed, "NOT A DIR")
-    elif cmd == "quit":
-        quit()
-    else:
-        var res = execProcess(cmd)
-        res.removeSuffix("\n")
-        sEcho(color, res)
-
-
-
-proc main() =
-    let configs = parseJson(getConf())
-    while true:
-        exec(read(), stringToFg($configs["color"]))
 
 
 main()
-
-
 
