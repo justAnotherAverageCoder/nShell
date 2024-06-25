@@ -20,28 +20,85 @@ proc makeLabel(con: Container): Label =
 proc split(str: string): seq[string] =
     return rsplit(str, " ")
 
+
+proc history(str: string, his: seq[string]): seq[string] =
+    var ret = his
+    if his.len() >= 26:
+        ret = @[""]
+    else:
+        ret.add(str)
+        return ret
+
+proc returnBehavior(lab: Label, box: TextBox) =
+    var spl = split(box.text)
+    lab.text = ""
+    if box.text == "clear":
+        lab.text = lab.text & ""
+    elif box.text == "quit":
+        quit()
+    elif spl[0] == "cd":
+        if spl[1] == "~":
+            setCurrentDir(getHomeDir())
+        else:
+            try:
+                setCurrentDir(spl[1])
+            except:
+                lab.text = "NOT A DIR"
+    else:
+        lab.text = lab.text & exe(box.text)
+    box.text = ""
+
+
+proc upBehavior(lab: Label, box: TextBox, coun: int, his: seq[string]) =
+    try:
+        box.text = his[his.len - coun - 1]
+    except:
+        lab.text = "TOO FAR"
+
+
+proc downBehavior(lab: Label, box: TextBox, coun: int, his: seq[string]) =
+    if coun == 0:
+        box.text = ""
+    elif coun != 0:
+        try:
+            box.text = his[coun - 1]
+        except:
+            lab.text = "TOO FAR"
+
+
+
+
+
+    
+
+
+
+
 proc event(tex: TextBox, lab: Label) =
+    var his = @[""]
+    var count = 0
     tex.onKeyDown = proc(event: KeyboardEvent) =
+        echo his
+        echo count
         if $event.key == "Key_Return":
-            var spl = split(tex.text)
-            lab.text = ""
-            if tex.text == "clear":
-                lab.text = lab.text & ""
-            elif tex.text == "quit":
-                quit()
-            elif spl[0] == "cd":
-                if spl[1] == "~":
-                    setCurrentDir(getHomeDir())
-                else:
-                    try:
-                        setCurrentDir(spl[1])
-                    except:
-                        lab.text = "NOT A DIR"
-
-
+            his = history($tex.text, his)
+            returnBehavior(lab, tex)
+            count = 0
+        elif $event.key == "Key_Up":
+            if count > his.len():
+                discard
             else:
-                lab.text = lab.text & exe(tex.text)
-            tex.text = ""
+                upBehavior(lab, tex, count, his)
+                count = count + 1
+        elif $event.key == "Key_Down":
+            if count <=  0:
+                discard
+            else:
+                downBehavior(lab, tex, count, his)
+                count = count - 1
+
+        
+
 
 
 
