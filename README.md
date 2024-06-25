@@ -7,3 +7,6 @@ TODO
 3) Clean up UI
 4) nano functionality???
 5) Some fun built in commands
+
+DONE
+1) History
